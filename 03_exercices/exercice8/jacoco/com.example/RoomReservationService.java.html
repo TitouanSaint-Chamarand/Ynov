@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RoomReservationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">exercice8</a> &gt; <a href="index.source.html" class="el_package">com.example</a> &gt; <span class="el_source">RoomReservationService.java</span></div><h1>RoomReservationService.java</h1><pre class="source lang-java linenums">package com.example;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+public class RoomReservationService {
+    private final RoomRepository roomRepository;
+    private final ReservationRepository reservationRepository;
+    private final NotificationService notificationService;
+
+    public RoomReservationService(
+            RoomRepository roomRepository,
+            ReservationRepository reservationRepository,
+            NotificationService notificationService
+<span class="fc" id="L16">    ) {</span>
+<span class="fc" id="L17">        this.roomRepository = roomRepository;</span>
+<span class="fc" id="L18">        this.reservationRepository = reservationRepository;</span>
+<span class="fc" id="L19">        this.notificationService = notificationService;</span>
+<span class="fc" id="L20">    }</span>
+
+    public ReservationResult reserve(
+            String userEmail,
+            String roomCode,
+            int participants,
+            LocalDateTime start,
+            LocalDateTime end
+    ) {
+<span class="fc" id="L29">        Optional&lt;Room&gt; roomOptional = roomRepository.findByCode(roomCode);</span>
+
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        if (roomOptional.isEmpty()) {</span>
+<span class="fc" id="L32">            return new ReservationResult.Rejected(&quot;Unknown room&quot;);</span>
+        }
+
+<span class="fc" id="L35">        Room room = roomOptional.get();</span>
+
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (participants &gt; room.maxCapacity()) {</span>
+<span class="fc" id="L38">            return new ReservationResult.Rejected(&quot;Insufficient capacity&quot;);</span>
+        }
+
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (!end.isAfter(start)) {</span>
+<span class="fc" id="L42">            return new ReservationResult.Rejected(&quot;Invalid period&quot;);</span>
+        }
+
+<span class="fc" id="L45">        List&lt;Reservation&gt; existingReservations = reservationRepository.findByRoomCode(roomCode);</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        for (Reservation existing : existingReservations) {</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">            if (overlaps(start, end, existing.start(), existing.end())) {</span>
+<span class="fc" id="L48">                return new ReservationResult.Rejected(&quot;Reservation conflict&quot;);</span>
+            }
+<span class="fc" id="L50">        }</span>
+
+<span class="fc" id="L52">        Reservation reservation = new Reservation(userEmail, roomCode, participants, start, end);</span>
+<span class="fc" id="L53">        reservationRepository.save(reservation);</span>
+<span class="fc" id="L54">        notificationService.sendConfirmation(userEmail, roomCode, start, end);</span>
+
+<span class="fc" id="L56">        return new ReservationResult.Accepted(reservation);</span>
+    }
+
+    private boolean overlaps(
+            LocalDateTime start,
+            LocalDateTime end,
+            LocalDateTime otherStart,
+            LocalDateTime otherEnd
+    ) {
+<span class="fc bfc" id="L65" title="All 4 branches covered.">        return start.isBefore(otherEnd) &amp;&amp; otherStart.isBefore(end);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>
