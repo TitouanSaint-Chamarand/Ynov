@@ -1,7 +1,4 @@
 target/
-cucumber-report.html
-cucumber-report.json
-jacoco/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

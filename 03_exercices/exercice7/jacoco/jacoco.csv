@@ -1,0 +1,8 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+exercice7,com.example,OrderResult.Accepted,0,6,0,0,0,1,0,1,0,1
+exercice7,com.example,OrderReceipt,0,15,0,0,0,1,0,1,0,1
+exercice7,com.example,OrderResult.Rejected,0,6,0,0,0,1,0,1,0,1
+exercice7,com.example,OrderService,0,72,0,4,0,17,0,4,0,2
+exercice7,com.example,Product,0,15,0,0,0,1,0,1,0,1
+exercice7,com.example,ClientProfile,0,35,0,0,0,8,0,3,0,3
+exercice7,com.example,Main,7,0,0,0,3,0,2,0,2,0
