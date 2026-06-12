@@ -1,5 +1,4 @@
-package com.example;
-
+import com.example.Fib;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -100,7 +99,6 @@ public class FibTest {
         List<Integer> result = fib.getFibSeries();
         List<Integer> expected = new ArrayList<>(result);
         expected.sort(null);
-//        Collections.sort(expected);
 
         //Assert
         Assertions.assertEquals(expected,result);

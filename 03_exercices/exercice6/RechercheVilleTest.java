@@ -1,5 +1,5 @@
-package com.example;
-
+import com.example.NotFoundException;
+import com.example.RechercheVille;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

@@ -1,6 +1,5 @@
-package com.example;
-
-
+import com.example.DiceScore;
+import com.example.Ide;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
