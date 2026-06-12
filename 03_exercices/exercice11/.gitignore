@@ -37,9 +37,7 @@ build/
 ### Mac OS ###
 .DS_Store
 
-### Rapports de test générés (README et index conservés) ###
+### Rapports de test générés localement (non versionnés) ###
 resultat-test/surefire-reports/
-resultat-test/jacoco/
-resultat-test/cucumber/
 resultat-test/maven-execution.log
 resultat-test/resume-tests.txt

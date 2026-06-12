@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InMemoryTicketRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">exercice11</a> &gt; <a href="index.source.html" class="el_package">com.example.supportticket.repository</a> &gt; <span class="el_source">InMemoryTicketRepository.java</span></div><h1>InMemoryTicketRepository.java</h1><pre class="source lang-java linenums">package com.example.supportticket.repository;
+
+import com.example.supportticket.model.Priority;
+import com.example.supportticket.model.SupportTicket;
+import com.example.supportticket.model.TicketStatus;
+import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+
+@Repository
+<span class="fc" id="L17">public class InMemoryTicketRepository implements TicketRepository {</span>
+
+<span class="fc" id="L19">    private final AtomicLong sequence = new AtomicLong(0);</span>
+<span class="fc" id="L20">    private final Map&lt;Long, SupportTicket&gt; tickets = new ConcurrentHashMap&lt;&gt;();</span>
+
+    @Override
+    public SupportTicket save(String title, Priority priority, TicketStatus status) {
+<span class="fc" id="L24">        Long id = sequence.incrementAndGet();</span>
+<span class="fc" id="L25">        SupportTicket ticket = new SupportTicket(id, title, priority, status);</span>
+<span class="fc" id="L26">        tickets.put(id, ticket);</span>
+<span class="fc" id="L27">        return ticket;</span>
+    }
+
+    @Override
+    public Optional&lt;SupportTicket&gt; findById(Long id) {
+<span class="fc" id="L32">        return Optional.ofNullable(tickets.get(id));</span>
+    }
+
+    @Override
+    public List&lt;SupportTicket&gt; findAll() {
+<span class="nc" id="L37">        return new ArrayList&lt;&gt;(tickets.values())</span>
+<span class="nc" id="L38">                .stream()</span>
+<span class="nc" id="L39">                .sorted(Comparator.comparing(SupportTicket::id))</span>
+<span class="nc" id="L40">                .toList();</span>
+    }
+
+    @Override
+    public SupportTicket updateStatus(Long id, TicketStatus status) {
+<span class="fc" id="L45">        SupportTicket current = tickets.get(id);</span>
+<span class="fc" id="L46">        SupportTicket updated = new SupportTicket(</span>
+<span class="fc" id="L47">                current.id(),</span>
+<span class="fc" id="L48">                current.title(),</span>
+<span class="fc" id="L49">                current.priority(),</span>
+                status
+        );
+<span class="fc" id="L52">        tickets.put(id, updated);</span>
+<span class="fc" id="L53">        return updated;</span>
+    }
+
+    @Override
+    public void deleteAll() {
+<span class="fc" id="L58">        tickets.clear();</span>
+<span class="fc" id="L59">        sequence.set(0);</span>
+<span class="fc" id="L60">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
