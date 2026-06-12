@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReservationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">exercice12</a> &gt; <a href="index.source.html" class="el_package">com.example.meetingroom.service</a> &gt; <span class="el_source">ReservationService.java</span></div><h1>ReservationService.java</h1><pre class="source lang-java linenums">package com.example.meetingroom.service;
+
+import com.example.meetingroom.exception.AlreadyCancelledException;
+import com.example.meetingroom.exception.ReservationConflictException;
+import com.example.meetingroom.exception.ReservationNotFoundException;
+import com.example.meetingroom.exception.RoomNotFoundException;
+import com.example.meetingroom.model.Reservation;
+import com.example.meetingroom.model.ReservationStatus;
+import com.example.meetingroom.repository.ReservationRepository;
+import com.example.meetingroom.repository.RoomRepository;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+
+@Service
+public class ReservationService {
+
+    private final ReservationRepository reservationRepository;
+    private final RoomRepository roomRepository;
+
+<span class="fc" id="L21">    public ReservationService(ReservationRepository reservationRepository, RoomRepository roomRepository) {</span>
+<span class="fc" id="L22">        this.reservationRepository = reservationRepository;</span>
+<span class="fc" id="L23">        this.roomRepository = roomRepository;</span>
+<span class="fc" id="L24">    }</span>
+
+    public Reservation create(Long roomId, String reserverName, LocalDateTime startTime, LocalDateTime endTime) {
+        // Vérifier que la salle existe
+<span class="fc" id="L28">        roomRepository.findById(roomId)</span>
+<span class="fc" id="L29">                .orElseThrow(() -&gt; new RoomNotFoundException(roomId));</span>
+
+<span class="pc bpc" id="L31" title="2 of 4 branches missed.">        if (reserverName == null || reserverName.isBlank()) {</span>
+<span class="nc" id="L32">            throw new IllegalArgumentException(&quot;Le nom de la personne qui réserve est obligatoire&quot;);</span>
+        }
+
+        // La fin doit être strictement après le début
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (!endTime.isAfter(startTime)) {</span>
+<span class="fc" id="L37">            throw new IllegalArgumentException(&quot;La date/heure de fin doit être strictement après la date/heure de début&quot;);</span>
+        }
+
+        // Vérifier qu'il n'y a pas de chevauchement avec une réservation confirmée
+<span class="fc" id="L41">        boolean hasOverlap = reservationRepository.findConfirmedByRoomId(roomId)</span>
+<span class="fc" id="L42">                .stream()</span>
+<span class="fc" id="L43">                .anyMatch(existing -&gt; overlaps(existing.startTime(), existing.endTime(), startTime, endTime));</span>
+
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (hasOverlap) {</span>
+<span class="fc" id="L46">            throw new ReservationConflictException(&quot;Le créneau chevauche une réservation existante pour cette salle&quot;);</span>
+        }
+
+<span class="fc" id="L49">        return reservationRepository.save(roomId, reserverName.trim(), startTime, endTime, ReservationStatus.CONFIRMED);</span>
+    }
+
+    public Reservation getById(Long id) {
+<span class="fc" id="L53">        return reservationRepository.findById(id)</span>
+<span class="pc" id="L54">                .orElseThrow(() -&gt; new ReservationNotFoundException(id));</span>
+    }
+
+    public Reservation cancel(Long id) {
+<span class="fc" id="L58">        Reservation reservation = getById(id);</span>
+
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        if (reservation.status() == ReservationStatus.CANCELLED) {</span>
+<span class="fc" id="L61">            throw new AlreadyCancelledException(id);</span>
+        }
+
+<span class="fc" id="L64">        return reservationRepository.updateStatus(id, ReservationStatus.CANCELLED);</span>
+    }
+
+    public void deleteAll() {
+<span class="nc" id="L68">        reservationRepository.deleteAll();</span>
+<span class="nc" id="L69">    }</span>
+
+    // Deux créneaux se chevauchent si l'un commence avant la fin de l'autre
+    private boolean overlaps(LocalDateTime start1, LocalDateTime end1, LocalDateTime start2, LocalDateTime end2) {
+<span class="pc bpc" id="L73" title="2 of 4 branches missed.">        return start1.isBefore(end2) &amp;&amp; start2.isBefore(end1);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

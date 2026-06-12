@@ -1,0 +1,8 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+exercice12,com.example.meetingroom.repository,InMemoryReservationRepository,1,104,1,1,0,25,1,8,0,8
+exercice12,com.example.meetingroom.repository,InMemoryRoomRepository,12,49,0,0,4,11,1,4,1,4
+exercice12,com.example.meetingroom.controller,MeetingRoomExceptionHandler,7,47,0,0,3,19,1,6,1,6
+exercice12,com.example.meetingroom.controller,RoomController,11,25,0,0,5,8,1,2,1,2
+exercice12,com.example.meetingroom.controller,ReservationController,0,47,0,0,0,16,0,4,0,4
+exercice12,com.example.meetingroom.service,ReservationService,15,112,4,10,3,22,6,10,2,7
+exercice12,com.example.meetingroom.service,RoomService,32,21,3,3,7,6,7,2,4,2
