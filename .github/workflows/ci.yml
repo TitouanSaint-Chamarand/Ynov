@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '03_exercices/exercice12/**'
+      - '03_exercices/exercice13/**'
+      - '03_exercices/exercice14/**'
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - '03_exercices/exercice12/**'
+      - '03_exercices/exercice13/**'
+      - '03_exercices/exercice14/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Tests ${{ matrix.exercice }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        exercice:
+          - exercice12
+          - exercice13
+          - exercice14
+
+    defaults:
+      run:
+        working-directory: 03_exercices/${{ matrix.exercice }}
+
+    steps:
+      - name: Recuperation du projet
+        uses: actions/checkout@v4
+
+      - name: Installation de Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: 03_exercices/${{ matrix.exercice }}/pom.xml
+
+      - name: Execution des tests et generation des rapports
+        run: mvn verify -B
+
+      - name: Archivage des artefacts de test
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.exercice }}-test-reports
+          path: |
+            03_exercices/${{ matrix.exercice }}/target/surefire-reports
+            03_exercices/${{ matrix.exercice }}/target/site/jacoco
+            03_exercices/${{ matrix.exercice }}/target/cucumber-reports
+            03_exercices/${{ matrix.exercice }}/target/cucumber-report.html
+            03_exercices/${{ matrix.exercice }}/target/cucumber-report.json
