@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LoanService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">exercice14</a> &gt; <a href="index.source.html" class="el_package">com.example.mediacity.service</a> &gt; <span class="el_source">LoanService.java</span></div><h1>LoanService.java</h1><pre class="source lang-java linenums">package com.example.mediacity.service;
+
+import com.example.mediacity.LoanPolicy;
+import com.example.mediacity.model.Loan;
+import com.example.mediacity.model.LoanResult;
+import com.example.mediacity.model.MajorDelayEvent;
+import com.example.mediacity.model.Member;
+import com.example.mediacity.model.ReturnResult;
+import com.example.mediacity.model.Work;
+import com.example.mediacity.repository.LoanRepository;
+import com.example.mediacity.repository.MemberRepository;
+import com.example.mediacity.repository.ReservationRepository;
+import com.example.mediacity.repository.WorkRepository;
+
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
+public class LoanService {
+
+    private static final int SUSPENSION_THRESHOLD = 3;
+
+    private final LoanRepository loanRepository;
+    private final MemberRepository memberRepository;
+    private final WorkRepository workRepository;
+    private final ReservationRepository reservationRepository;
+    private final ReservationService reservationService;
+
+    public LoanService(
+            LoanRepository loanRepository,
+            MemberRepository memberRepository,
+            WorkRepository workRepository,
+            ReservationRepository reservationRepository,
+            ReservationService reservationService
+<span class="fc" id="L34">    ) {</span>
+<span class="fc" id="L35">        this.loanRepository = loanRepository;</span>
+<span class="fc" id="L36">        this.memberRepository = memberRepository;</span>
+<span class="fc" id="L37">        this.workRepository = workRepository;</span>
+<span class="fc" id="L38">        this.reservationRepository = reservationRepository;</span>
+<span class="fc" id="L39">        this.reservationService = reservationService;</span>
+<span class="fc" id="L40">    }</span>
+
+    public LoanResult borrow(String memberId, String workId, LocalDate loanDate) {
+<span class="fc" id="L43">        Member member = memberRepository.findById(memberId).orElse(null);</span>
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">        if (member == null) {</span>
+<span class="nc" id="L45">            return new LoanResult.Rejected(&quot;Adhérent inconnu&quot;);</span>
+        }
+
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (member.suspended()) {</span>
+<span class="fc" id="L49">            return new LoanResult.Rejected(&quot;Adhérent suspendu&quot;);</span>
+        }
+
+<span class="fc" id="L52">        Work work = workRepository.findById(workId).orElse(null);</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        if (work == null) {</span>
+<span class="nc" id="L54">            return new LoanResult.Rejected(&quot;Ouvrage inconnu&quot;);</span>
+        }
+
+<span class="fc bfc" id="L57" title="All 4 branches covered.">        if (work.heldForMemberId() != null &amp;&amp; !work.heldForMemberId().equals(memberId)) {</span>
+<span class="fc" id="L58">            return new LoanResult.Rejected(&quot;Ouvrage réservé pour un autre adhérent&quot;);</span>
+        }
+
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (loanRepository.findActiveByWorkId(workId).isPresent()) {</span>
+<span class="fc" id="L62">            return new LoanResult.Rejected(&quot;Ouvrage déjà emprunté&quot;);</span>
+        }
+
+<span class="fc" id="L65">        LocalDate dueDate = loanDate.plusDays(LoanPolicy.LOAN_DURATION_DAYS);</span>
+<span class="fc" id="L66">        Loan loan = loanRepository.save(new Loan(0, memberId, workId, loanDate, dueDate, null, 0.0));</span>
+
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (work.heldForMemberId() != null) {</span>
+<span class="fc" id="L69">            reservationService.fulfillReadyReservation(workId, memberId);</span>
+<span class="fc" id="L70">            workRepository.save(work.withoutHold());</span>
+        }
+
+<span class="fc" id="L73">        return new LoanResult.Accepted(loan);</span>
+    }
+
+    public ReturnResult returnWork(long loanId, LocalDate returnDate) {
+<span class="fc" id="L77">        Loan loan = loanRepository.findById(loanId)</span>
+<span class="fc" id="L78">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Prêt introuvable&quot;));</span>
+
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (!loan.isActive()) {</span>
+<span class="nc" id="L81">            throw new IllegalStateException(&quot;Ce prêt est déjà clôturé&quot;);</span>
+        }
+
+<span class="fc" id="L84">        long daysLate = ChronoUnit.DAYS.between(loan.dueDate(), returnDate);</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">        if (daysLate &lt; 0) {</span>
+<span class="fc" id="L86">            daysLate = 0;</span>
+        }
+
+<span class="fc" id="L89">        double penalty = LoanPolicy.calculatePenalty(daysLate);</span>
+<span class="fc" id="L90">        Loan returnedLoan = loanRepository.save(loan.withReturn(returnDate, penalty));</span>
+
+<span class="fc" id="L92">        boolean majorDelayRecorded = false;</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (LoanPolicy.isMajorDelay(daysLate)) {</span>
+<span class="fc" id="L94">            reservationRepository.saveMajorDelay(new MajorDelayEvent(loan.memberId(), returnDate, daysLate));</span>
+<span class="fc" id="L95">            majorDelayRecorded = true;</span>
+<span class="fc" id="L96">            updateSuspensionStatus(loan.memberId(), returnDate);</span>
+        }
+
+<span class="fc" id="L99">        reservationService.onWorkReturned(loan.workId(), returnDate);</span>
+
+<span class="fc" id="L101">        return new ReturnResult.Completed(returnedLoan, daysLate, majorDelayRecorded);</span>
+    }
+
+    public boolean isMemberSuspended(String memberId) {
+<span class="fc" id="L105">        return memberRepository.findById(memberId)</span>
+<span class="fc" id="L106">                .map(Member::suspended)</span>
+<span class="fc" id="L107">                .orElse(false);</span>
+    }
+
+    public boolean isWorkOnLoan(String workId) {
+<span class="fc" id="L111">        return loanRepository.findActiveByWorkId(workId).isPresent();</span>
+    }
+
+    private void updateSuspensionStatus(String memberId, LocalDate referenceDate) {
+<span class="fc" id="L115">        LocalDate since = referenceDate.minusYears(1);</span>
+<span class="fc" id="L116">        long majorDelays = reservationRepository.countMajorDelaysForMemberSince(memberId, since);</span>
+
+<span class="fc bfc" id="L118" title="All 2 branches covered.">        if (majorDelays &gt;= SUSPENSION_THRESHOLD) {</span>
+<span class="fc" id="L119">            Member member = memberRepository.findById(memberId).orElseThrow();</span>
+<span class="fc" id="L120">            memberRepository.save(new Member(member.id(), member.name(), true));</span>
+        }
+<span class="fc" id="L122">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -1,0 +1,5 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+exercice14,com.example.mediacity.service,MediaCityService,6,137,0,0,0,28,1,13,1,13
+exercice14,com.example.mediacity.service,ReservationService,32,157,9,9,5,35,7,11,1,8
+exercice14,com.example.mediacity.service,LoanService,15,233,3,19,3,48,3,15,0,7
+exercice14,com.example.mediacity,LoanPolicy,0,19,0,4,0,4,0,4,0,2
